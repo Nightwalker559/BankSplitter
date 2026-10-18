@@ -225,6 +225,7 @@ ns.SetStatus = SetStatus
 ns.SetTab = SetTab
 ns.UpdateModeUI = UpdateModeUI
 UI.actionBtn = actionBtn
+UI.configBtn = configBtn
 UI.frame = frame
 UI.modeDropdown = modeDropdown
 UI.sourceDropdown = sourceDropdown

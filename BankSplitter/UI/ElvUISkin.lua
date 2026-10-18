@@ -8,6 +8,13 @@ local _, ns = ...
 
 local UI = ns.UI
 
+-- ElvUI's S:HandleTab pulls the visible backdrop inwards by a fixed inset instead of
+-- anchoring it to the frame edges, so the tab strip needs negative spacing to leave
+-- ~1 px between the tabs and has to move left a bit. Same values as ElvUI's own
+-- TabSystem skins (Player Spells, Friends).
+local TAB_SPACING = -5
+local TAB_START_X = -3
+
 -- Called from Core/Init.lua when the player enters the world
 ns.ApplyElvUISkin = function()
     if not ElvUI then return end
@@ -51,8 +58,9 @@ ns.ApplyElvUISkin = function()
             end)
         end
 
-        -- Action button and +/- buttons
+        -- Action button, Options link in the title bar and +/- buttons
         SkinBtn(UI.actionBtn)
+        SkinBtn(UI.configBtn)
         SkinBtn(UI.countMinusBtn)
         SkinBtn(UI.countPlusBtn)
         SkinBtn(UI.stackMinusBtn)
@@ -63,8 +71,13 @@ ns.ApplyElvUISkin = function()
         S:HandleDropDownBox(UI.sourceDropdown, 144)
 
         -- Tabs below the window (Blizzard's TabSystem)
-        if UI.frame.TabSystem then
-            for _, tab in next, { UI.frame.TabSystem:GetChildren() } do S:HandleTab(tab) end
+        local tabSystem = UI.frame.TabSystem
+        if tabSystem then
+            for _, tab in next, { tabSystem:GetChildren() } do S:HandleTab(tab) end
+            tabSystem.spacing = TAB_SPACING
+            tabSystem:MarkDirty()
+            tabSystem:ClearAllPoints()
+            tabSystem:SetPoint("TOPLEFT", UI.frame, "BOTTOMLEFT", TAB_START_X, 0)
         end
 
         -- EditBoxes
