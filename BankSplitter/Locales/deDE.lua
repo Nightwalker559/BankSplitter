@@ -1,4 +1,4 @@
--- BankSplitter – Lokalisierung: Deutsch (deDE)
+-- BankSplitter - Localization: German (deDE)
 local _, ns = ...
 
 if GetLocale() ~= "deDE" then return end
@@ -69,7 +69,7 @@ ns.L = setmetatable({
     STATUS_TRANSFER_DONE_SKIPPED = "Fertig! %d Stacks übertragen, %d übersprungen (hier nicht erlaubt).",
     STATUS_TRANSFER_PARTIAL      = "%s\nBisher %d Stacks übertragen.",
 
-    -- Optionen (Einstellungs-Panel)
+    -- Options (Settings panel)
     OPT_OPEN_GUILD       = "Mit der Gildenbank öffnen",
     OPT_OPEN_WARBAND     = "Mit der Kriegsmeutenbank öffnen",
     OPT_OPEN_CHARACTER   = "Mit der Charakterbank öffnen",
@@ -81,7 +81,7 @@ ns.L = setmetatable({
     OPT_REMEMBER         = "Letzte Auswahl merken",
     OPT_REMEMBER_TIP     = "Behält Bank, Quelle, Tab, Stack-Anzahl und Stack-Größe über Sitzungen hinweg.",
     OPT_SCALE            = "Fenstergröße",
-    OPT_SCALE_TIP        = "Größe beider Fenster.",
+    OPT_SCALE_TIP        = "Größe des BankSplitter-Fensters.",
     OPT_GREETING         = "Chat-Meldung beim Login",
     OPT_GREETING_TIP     = "Gibt beim Login eine kurze \"geladen\"-Zeile aus.",
 

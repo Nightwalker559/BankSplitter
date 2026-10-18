@@ -1,13 +1,12 @@
 -- ============================================================
--- BankSplitter - ElvUI Skin
--- WoW Midnight 12.1.5
---
--- This file is optional. It is only loaded when ElvUI is active
--- and skins all frames and buttons in the ElvUI style.
--- Without ElvUI, this file has no effect.
+-- BankSplitter - ElvUI skin
+-- Skins the window, buttons, dropdowns, tabs and the list in the ElvUI style.
+-- Without ElvUI nothing is skinned (ApplyElvUISkin returns right away).
 -- ============================================================
 
 local _, ns = ...
+
+local UI = ns.UI
 
 -- Called from Core/Init.lua when the player enters the world
 ns.ApplyElvUISkin = function()
@@ -16,13 +15,6 @@ ns.ApplyElvUISkin = function()
     if not E then return end
     local S = E:GetModule("Skins")
     if not S then return end
-
-    -- Get UI elements from the main file
-    local UI = ns.UI
-    if not UI then
-        print("|cff00ccff[BankSplitter]|r |cffff8800ElvUI skin: ns.UI not found.|r")
-        return
-    end
 
     local ok, err = pcall(function()
         -- Window
@@ -47,15 +39,15 @@ ns.ApplyElvUISkin = function()
         local function SkinBtn(btn)
             S:HandleButton(btn)
             btn:SetBackdropBorderColor(r, g, b, 1)
-            local orig_enter = btn:GetScript("OnEnter")
-            local orig_leave = btn:GetScript("OnLeave")
+            local origEnter = btn:GetScript("OnEnter")
+            local origLeave = btn:GetScript("OnLeave")
             btn:SetScript("OnEnter", function(self)
                 self:SetBackdropBorderColor(hr, hg, hb, 1)
-                if orig_enter then orig_enter(self) end
+                if origEnter then origEnter(self) end
             end)
             btn:SetScript("OnLeave", function(self)
                 self:SetBackdropBorderColor(r, g, b, 1)
-                if orig_leave then orig_leave(self) end
+                if origLeave then origLeave(self) end
             end)
         end
 

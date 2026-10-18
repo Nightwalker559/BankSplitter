@@ -34,7 +34,8 @@ local TAB_ALL = 0   -- targetTab value meaning "every accessible tab"
 
 -- Bank replacement addons draw their own bank window (often with a merged
 -- "All" view), so Blizzard's visible-tab state says nothing about what the
--- user is looking at. The visible-tab check is skipped when one is loaded.
+-- user is looking at. With one loaded, the visible-tab check is skipped and
+-- the "All" tab chip is offered.
 local CUSTOM_BANK_ADDONS = { "Baganator", "Bagnon", "Combuctor", "BetterBags", "ArkInventory", "AdiBags" }
 
 local WARBAND_BAGS = {
@@ -74,10 +75,9 @@ local BAG_BANK_INTERACTIONS = {
     Enum.PlayerInteractionType.AccountBanker,
 }
 
-local MODE_NAMES = { guild = L.BTN_GUILD, warband = L.BTN_WARBAND, character = L.BTN_CHARACTER }
-
-local MODE_ORDER   = { "guild", "warband", "character" }
-local SOURCE_NAMES = { bank = L.BTN_SOURCE_BANK, bags = L.BTN_SOURCE_BAGS, withdraw = L.BTN_SOURCE_WITHDRAW }
+local MODE_NAMES    = { guild = L.BTN_GUILD, warband = L.BTN_WARBAND, character = L.BTN_CHARACTER }
+local MODE_ORDER    = { "guild", "warband", "character" }
+local SOURCE_NAMES  = { bank = L.BTN_SOURCE_BANK, bags = L.BTN_SOURCE_BAGS, withdraw = L.BTN_SOURCE_WITHDRAW }
 -- Setting that opens the window together with each bank
 local OPEN_SETTING = { guild = "openGuild", warband = "openWarband", character = "openCharacter" }
 

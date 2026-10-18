@@ -6,6 +6,8 @@
 local _, ns = ...
 
 local BTN = ns.BTN
+local BagSlots = ns.BagSlots
+local BankSlots = ns.BankSlots
 local COLOR = ns.COLOR
 local CheckAndValidate = ns.CheckAndValidate
 local FS = ns.FS
@@ -17,7 +19,6 @@ local IsBankSlotEmpty = ns.IsBankSlotEmpty
 local IsTabAccessible = ns.IsTabAccessible
 local L = ns.L
 local PL = ns.PL
-local PLAYER_BAGS = ns.PLAYER_BAGS
 local PR = ns.PR
 local S = ns.S
 local SetStatus = ns.SetStatus
@@ -25,7 +26,7 @@ local TabRange = ns.TabRange
 local ValidateBank = ns.ValidateBank
 local WHITE = ns.WHITE
 local UI = ns.UI
-local RequestPreview   -- assigned below, used by other files through ns
+local RequestPreview   -- forward declaration: assigned below, used by the handlers above it
 
 local itemSlot = CreateFrame("Button", "BankSplitterItemSlot", UI.splitPage)
 itemSlot:SetSize(40, 40)
@@ -148,56 +149,36 @@ itemSlot:SetScript("OnLeave", function() GameTooltip:Hide() end)
 -- is not committed yet when +/- or the action button is clicked. Those handlers
 -- therefore commit the boxes first. While a run is active the values are
 -- frozen: the boxes are reset to what the run uses.
-local function ParseCount(self)
-    if S.isRunning then self:SetText(tostring(S.stackCount)); return end
-    S.stackCount = math.max(0, tonumber(self:GetText()) or 0)
-    self:SetText(tostring(S.stackCount))
+--- Wires an edit box and its - / + buttons to the number S[key] (at least `min`).
+--- Returns the function that commits the typed value.
+local function BindNumberBox(edit, minusBtn, plusBtn, key, min)
+    local function Commit()
+        if S.isRunning then edit:SetText(tostring(S[key])); return end
+        S[key] = math.max(min, tonumber(edit:GetText()) or min)
+        edit:SetText(tostring(S[key]))
+    end
+    local function Step(delta)
+        if S.isRunning then return end
+        Commit()
+        S[key] = math.max(min, S[key] + delta)
+        edit:SetText(tostring(S[key]))
+    end
+    edit:SetScript("OnEnterPressed", function() Commit(); edit:ClearFocus() end)
+    edit:SetScript("OnEscapePressed", function() edit:SetText(tostring(S[key])); edit:ClearFocus() end)
+    edit:SetScript("OnEditFocusLost", Commit)
+    edit:SetScript("OnTextChanged", function() RequestPreview() end)   -- the preview follows what is typed
+    minusBtn:SetScript("OnClick", function() Step(-1) end)
+    plusBtn:SetScript("OnClick", function() Step(1) end)
+    return Commit
 end
-countEdit:SetScript("OnEnterPressed", function(self) ParseCount(self); self:ClearFocus() end)
-countEdit:SetScript("OnEscapePressed", function(self) self:SetText(tostring(S.stackCount)); self:ClearFocus() end)
-countEdit:SetScript("OnEditFocusLost", ParseCount)
-
-countMinusBtn:SetScript("OnClick", function()
-    if S.isRunning then return end
-    ParseCount(countEdit)
-    if S.stackCount > 0 then S.stackCount = S.stackCount - 1; countEdit:SetText(tostring(S.stackCount)) end
-end)
-countPlusBtn:SetScript("OnClick", function()
-    if S.isRunning then return end
-    ParseCount(countEdit)
-    S.stackCount = S.stackCount + 1; countEdit:SetText(tostring(S.stackCount))
-end)
-
-local function ParseStack(self)
-    if S.isRunning then self:SetText(tostring(S.stackSize)); return end
-    S.stackSize = math.max(1, tonumber(self:GetText()) or 1)
-    self:SetText(tostring(S.stackSize))
-end
-stackEdit:SetScript("OnEnterPressed", function(self) ParseStack(self); self:ClearFocus() end)
-stackEdit:SetScript("OnEscapePressed", function(self) self:SetText(tostring(S.stackSize)); self:ClearFocus() end)
-stackEdit:SetScript("OnEditFocusLost", ParseStack)
-
-stackMinusBtn:SetScript("OnClick", function()
-    if S.isRunning then return end
-    ParseStack(stackEdit)
-    if S.stackSize > 1 then S.stackSize = S.stackSize - 1; stackEdit:SetText(tostring(S.stackSize)) end
-end)
-stackPlusBtn:SetScript("OnClick", function()
-    if S.isRunning then return end
-    ParseStack(stackEdit)
-    S.stackSize = S.stackSize + 1; stackEdit:SetText(tostring(S.stackSize))
-end)
-
--- The live preview follows what is typed, before it is committed
-countEdit:SetScript("OnTextChanged", function() RequestPreview() end)
-stackEdit:SetScript("OnTextChanged", function() RequestPreview() end)
+local CommitCount = BindNumberBox(countEdit, countMinusBtn, countPlusBtn, "stackCount", 0)
+local CommitSize  = BindNumberBox(stackEdit, stackMinusBtn, stackPlusBtn, "stackSize", 1)
 
 --- Commits both edit boxes (Split).
 local function ReadInputs()
-    ParseCount(countEdit); countEdit:ClearFocus()
-    ParseStack(stackEdit); stackEdit:ClearFocus()
+    CommitCount(); countEdit:ClearFocus()
+    CommitSize();  stackEdit:ClearFocus()
 end
-
 
 --- What a split run would do with the current selection.
 --- Returns the text and its color. The edit boxes are read as typed (not committed yet).
@@ -208,10 +189,11 @@ local function ComputePreview()
 
     local count = math.max(0, tonumber(countEdit:GetText()) or 0)
     local size  = math.max(1, tonumber(stackEdit:GetText()) or 1)
+    local key = S.targetItem.key
     local found, slotsNeeded, emptySlots = 0, 0, 0
-    local first, last = TabRange()
 
     if S.sourceMode == "bank" then
+        local first, last = TabRange()
         -- Splits stay inside their tab, so free slots are counted for the
         -- tabs that actually hold stacks to split.
         for tab = first, last do
@@ -221,7 +203,7 @@ local function ComputePreview()
                     local id, n = GetBankSlotInfo(tab, slot)
                     if not id or n == 0 then
                         tabEmpty = tabEmpty + 1
-                    elseif n > size and id == S.targetItem.key then
+                    elseif n > size and id == key then
                         tabFound    = tabFound + 1
                         slotsNeeded = slotsNeeded + (math.ceil(n / size) - 1)
                     end
@@ -232,43 +214,34 @@ local function ComputePreview()
         end
         if found == 0 then return string.format(L.STATUS_NO_STACKS, size), COLOR.INFO end
     elseif S.sourceMode == "withdraw" then
-        for tab = first, last do
-            if IsTabAccessible(tab) then
-                for slot = 1, GetBankTabSlotCount(tab) do
-                    local id, n = GetBankSlotInfo(tab, slot)
-                    if id and n > size and id == S.targetItem.key then
-                        found       = found + 1
-                        slotsNeeded = slotsNeeded + (math.ceil(n / size) - 1)
-                    end
-                end
+        for tab, slot in BankSlots() do
+            local id, n = GetBankSlotInfo(tab, slot)
+            if id and n > size and id == key then
+                found       = found + 1
+                slotsNeeded = slotsNeeded + (math.ceil(n / size) - 1)
             end
         end
         if found == 0 then return string.format(L.STATUS_NO_STACKS, size), COLOR.INFO end
-        for _, bagID in ipairs(PLAYER_BAGS) do
-            for slot = 1, C_Container.GetContainerNumSlots(bagID) do
-                if C_Container.GetContainerItemLink(bagID, slot) == nil then emptySlots = emptySlots + 1 end
-            end
+        for bagID, slot in BagSlots() do
+            if C_Container.GetContainerItemLink(bagID, slot) == nil then emptySlots = emptySlots + 1 end
         end
     else
         -- Bags -> Bank: count matching items in bags and free bank slots
         local totalItems = 0
-        for _, bagID in ipairs(PLAYER_BAGS) do
-            for slot = 1, C_Container.GetContainerNumSlots(bagID) do
-                local id, n = GetBagSlotInfo(bagID, slot)
-                if id and id == S.targetItem.key then totalItems = totalItems + n end
-            end
+        for bagID, slot in BagSlots() do
+            local id, n = GetBagSlotInfo(bagID, slot)
+            if id and id == key then totalItems = totalItems + n end
         end
         if totalItems == 0 then return L.STATUS_NO_ITEMS_IN_BAGS, COLOR.INFO end
-        for tab = first, last do
-            if IsTabAccessible(tab) then
-                for slot = 1, GetBankTabSlotCount(tab) do
-                    if IsBankSlotEmpty(tab, slot) then emptySlots = emptySlots + 1 end
-                end
-            end
+        for tab, slot in BankSlots() do
+            if IsBankSlotEmpty(tab, slot) then emptySlots = emptySlots + 1 end
         end
         found       = math.ceil(totalItems / size)
         slotsNeeded = found
     end
+
+    -- a run stops after `count` stacks, so it never needs more slots than that
+    if count > 0 then slotsNeeded = math.min(slotsNeeded, count) end
 
     local countLabel = count > 0
         and string.format("%d x %d  |  ", count, size)
@@ -313,9 +286,6 @@ ns.StartSplit = StartSplit
 UI.countEdit = countEdit
 UI.countMinusBtn = countMinusBtn
 UI.countPlusBtn = countPlusBtn
-UI.itemIcon = itemIcon
-UI.itemNameText = itemNameText
-UI.itemSlot = itemSlot
 UI.itemSlotBorderFrame = itemSlotBorderFrame
 UI.previewText = previewText
 UI.stackEdit = stackEdit

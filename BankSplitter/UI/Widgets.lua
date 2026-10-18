@@ -8,11 +8,10 @@ local _, ns = ...
 local W  = 360
 local H  = 372
 local INSET_BOTTOM = 50   -- footer bar (status + action button) below the content inset
-local PL = 12
+local PL = 12            -- left / right content padding
 local PR = -12
 local PAGE_TOP = -120     -- where the tab pages start (below title, selectors and tab chips)
 local WHITE = "Interface\\Buttons\\WHITE8x8"
-
 
 --- Window in the current Blizzard panel style: DefaultPanelTemplate (nine-slice
 --- metal border, rock background, title) with an inset content area, like the
@@ -54,6 +53,7 @@ local function MakeMovable(f, key)
     end)
 end
 
+--- Font string anchored top-left inside parent.
 local function FS(parent, font, x, y, text)
     local fs = parent:CreateFontString(nil, "OVERLAY", font or "GameFontNormal")
     fs:SetPoint("TOPLEFT", parent, "TOPLEFT", x, y)
@@ -61,7 +61,7 @@ local function FS(parent, font, x, y, text)
     return fs
 end
 
---- Red panel button anchored top-left inside parent.
+--- Standard red panel button anchored top-left inside parent.
 local function BTN(parent, x, y, w, h, label)
     local b = CreateFrame("Button", nil, parent, "UIPanelButtonTemplate")
     b:SetSize(w or 80, h or 22)
@@ -70,6 +70,7 @@ local function BTN(parent, x, y, w, h, label)
     return b
 end
 
+--- Horizontal divider line across the parent at offset y.
 local function DIV(parent, y)
     local tex = parent:CreateTexture(nil, "ARTWORK")
     tex:SetTexture("Interface\\Common\\UI-TooltipDivider-Transparent")

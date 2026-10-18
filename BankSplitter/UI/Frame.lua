@@ -12,7 +12,6 @@ local CreateFlatButton = ns.CreateFlatButton
 local CreatePanel = ns.CreatePanel
 local DIV = ns.DIV
 local FS = ns.FS
-local GetMaxTabs = ns.GetMaxTabs
 local H = ns.H
 local INSET_BOTTOM = ns.INSET_BOTTOM
 local L = ns.L
@@ -26,7 +25,7 @@ local S = ns.S
 local SOURCE_NAMES = ns.SOURCE_NAMES
 local TAB_ALL = ns.TAB_ALL
 local W = ns.W
-local SetTab, UpdateModeUI, SetMode, SetSource, SelectTab   -- assigned below, used by other files through ns
+local SetTab, UpdateModeUI, SetMode, SetSource, SelectTab   -- forward declarations: they call each other
 
 local frame = CreatePanel("BankSplitterFrame", UIParent, "BankSplitter")
 frame:SetSize(W, H)
@@ -53,7 +52,6 @@ configBtn:SetNormalFontObject("GameFontNormalSmall")
 configBtn:SetHighlightFontObject("GameFontHighlightSmall")
 configBtn:SetText(L.BTN_CONFIG)
 configBtn:SetScript("OnClick", function() ns.OpenSettings() end)
-
 
 FS(frame, "GameFontNormalSmall", PL + 8, -30, L.LABEL_BANK)
 FS(frame, "GameFontNormalSmall", W - PL - 160 + 8, -30, L.LABEL_SOURCE)
@@ -85,15 +83,22 @@ allTabBtn:SetPoint("TOPLEFT", frame, "TOPLEFT", PL + 32, -82)
 local tabButtons = { [TAB_ALL] = allTabBtn }   -- ipairs() only walks the numbered tabs
 for i = 1, 8 do
     tabButtons[i] = CreateFlatButton(frame, 28, 22, tostring(i))
-    tabButtons[i]:SetPoint("TOPLEFT", frame, "TOPLEFT", PL + 32 + 38 + (i - 1) * 32, -82)
 end
 
 DIV(frame, -106)
 
 local function UpdateTabButtons()
-    local maxTabs = GetMaxTabs()
-    for i, btn in ipairs(tabButtons) do btn:SetShown(i <= maxTabs) end
-    if S.targetTab > maxTabs then S.targetTab = 1 end
+    local tabCount = ns.GetUsableTabCount()   -- only the tabs the player has, not every possible one
+    -- Blizzard's own bank has no "all tabs" view; only a bank replacement addon does
+    local showAll = ns.IsCustomBankAddonLoaded()
+    allTabBtn:SetShown(showAll)
+    local x = PL + 32 + (showAll and 38 or 0)
+    for i, btn in ipairs(tabButtons) do
+        btn:SetShown(i <= tabCount)
+        btn:ClearAllPoints()
+        btn:SetPoint("TOPLEFT", frame, "TOPLEFT", x + (i - 1) * 32, -82)
+    end
+    if S.targetTab > tabCount or (S.targetTab == TAB_ALL and not showAll) then S.targetTab = 1 end
 end
 
 local function HighlightTab(index)
@@ -106,7 +111,7 @@ SetTab = function(index)
     S.targetTab = index
     HighlightTab(index)
     ns.RequestPreview()
-    if ns.SaveLast then ns.SaveLast() end
+    ns.SaveLast()
 end
 
 for index, btn in pairs(tabButtons) do
@@ -145,8 +150,7 @@ local function SetRunningUI(running)
     sourceDropdown:SetEnabled(not running)
 end
 
-
--- Changing bank / source / item mid-run would redirect the running operation
+--- Re-reads the bank selection into the controls (tab chips, dropdowns).
 UpdateModeUI = function()
     UpdateTabButtons()
     HighlightTab(S.targetTab)
@@ -154,7 +158,8 @@ UpdateModeUI = function()
     sourceDropdown:GenerateMenu()
 end
 
-SetMode = function(key, quiet)
+-- Changing the bank or source mid-run would redirect the running operation: ignored while running.
+SetMode = function(key)
     if S.isRunning or not MODE_NAMES[key] then return end
     S.mode = key; S.targetTab = 1; UpdateModeUI()
     ns.RequestPreview()
@@ -205,7 +210,6 @@ end
 UpdateModeUI()
 UpdateActionButton()
 
-
 -- One button: starts the page's run, or stops the running one
 actionBtn:SetScript("OnClick", function()
     if S.isRunning then ns.AbortRun()
@@ -218,14 +222,12 @@ ns.SelectTab = SelectTab
 ns.SetMode = SetMode
 ns.SetRunningUI = SetRunningUI
 ns.SetStatus = SetStatus
+ns.SetTab = SetTab
 ns.UpdateModeUI = UpdateModeUI
 UI.actionBtn = actionBtn
-UI.allTabBtn = allTabBtn
-UI.configBtn = configBtn
 UI.frame = frame
 UI.modeDropdown = modeDropdown
 UI.sourceDropdown = sourceDropdown
 UI.splitPage = splitPage
 UI.statusText = statusText
-UI.tabButtons = tabButtons
 UI.transferPage = transferPage

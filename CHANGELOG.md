@@ -17,6 +17,9 @@
   - **Remember last selection**: bank, source, tab, page, stack count and stack size. Default: on.
   - **Window scale** (70 % - 130 %) and **chat message on login**.
 - **The window position** is saved when you move the window.
+- **The tab follows the bank window**: click tab 7 in the bank and chip 7 is selected here; switching between the Bank and Warband panel does the same. The chips show only the tabs you have (for example 1-2 with two Warband tabs) and update when you buy one.
+- **Baganator support**: the open bank and tab are read from Baganator's own bank and guild bank windows (Baganator hides Blizzard's), including its all-tabs view, which selects **All**.
+- `/banksplitter bank` prints which bank and tab BankSplitter sees as open.
 
 ### Changed
 - The addon is called **BankSplitter** everywhere now: the folder is `Interface\AddOns\BankSplitter` (it was `GuildBankSplitter`), and so are the files and frames. **Delete the old `GuildBankSplitter` folder.** To keep your transfer list and options, close the game and copy `WTF\Account\<account>\SavedVariables\GuildBankSplitter.lua` to `BankSplitter.lua` in the same folder.
@@ -27,6 +30,9 @@
 - The transfer list uses Blizzard's current `ScrollFrameTemplate` (modern scroll bar) instead of the deprecated `UIPanelScrollFrameTemplate`.
 - The visible Warband / Character Bank tab is read from Blizzard's bank panel (`BankFrame.BankPanel:GetSelectedTabID()`) instead of being guessed from `BAG_UPDATE`. A plain tab click without an item change no longer leaves a stale tab behind.
 - The ElvUI skin covers the new controls (dropdowns, tabs) and reads ElvUI's color tables by `.r/.g/.b`.
+- The **All** chip is only shown with a bank replacement addon loaded: Blizzard's bank has no all-tabs view.
+- The preview no longer asks for more free slots than the chosen stack count needs.
+- Internal cleanup: shared helpers for bank / bag slot loops and bank pickups, lazy free-slot search while splitting, remembered settings are restored once all addons are loaded.
 
 ### Fixed
 - Gaps between the new stacks when splitting (seen in the Guild Bank): a step started as soon as a fixed pause was over, even if the server had not processed the previous one yet. The source slot was still locked, the split failed silently, and the reserved target slot stayed empty. Every step now waits until the previous operation is confirmed (cursor empty, slots unlocked, target filled; polled every 0.1 s, up to 2.5 s). An operation that is never confirmed releases its slot and is retried; after 3 in a row the run stops with a message. The fixed pause stays as a minimum. Applies to splits and to the transfer list.

@@ -1,14 +1,14 @@
--- BankSplitter – Localization: English (enUS / default fallback)
+-- BankSplitter - Localization: English (enUS, also the fallback for other locales)
 local _, ns = ...
 
 ns.L = {
-    -- UI Labels
+    -- UI labels
     LABEL_BANK          = "Bank:",
     LABEL_SOURCE        = "Source:",
     LABEL_TAB           = "Tab:",
     LABEL_STACK_COUNT   = "Count:",
     LABEL_STACK_SIZE    = "Size:",
-    LABEL_PER_SLOT      = "per Stack",
+    LABEL_PER_SLOT      = "per stack",
     LABEL_STACKS_HINT   = "Stacks  (0 = all)",
 
     -- Buttons
@@ -31,7 +31,7 @@ ns.L = {
     TRANSFER_HINT           = "Drag items here to add them to the list. Each crafting rank counts as its own item.",
     TRANSFER_COUNT          = "%d items in list",
 
-    -- Item Slot
+    -- Item slot
     ITEM_EMPTY          = "|cff888888No item – drag here\nor click.|r",
     TOOLTIP_REMOVE      = "|cffaaaaaa[Click to remove]|r",
 
@@ -83,7 +83,7 @@ ns.L = {
     OPT_REMEMBER         = "Remember last selection",
     OPT_REMEMBER_TIP     = "Keeps bank, source, tab, stack count and stack size between sessions.",
     OPT_SCALE            = "Window scale",
-    OPT_SCALE_TIP        = "Size of both windows.",
+    OPT_SCALE_TIP        = "Size of the BankSplitter window.",
     OPT_GREETING         = "Chat message on login",
     OPT_GREETING_TIP     = "Prints a short \"loaded\" line when you log in.",
 

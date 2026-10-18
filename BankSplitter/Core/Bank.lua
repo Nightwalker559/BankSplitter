@@ -13,6 +13,7 @@ local CUSTOM_BANK_ADDONS = ns.CUSTOM_BANK_ADDONS
 local GetItemKey = ns.GetItemKey
 local L = ns.L
 local MODE_NAMES = ns.MODE_NAMES
+local PLAYER_BAGS = ns.PLAYER_BAGS
 local S = ns.S
 local TAB_ALL = ns.TAB_ALL
 local WARBAND_BAGS = ns.WARBAND_BAGS
@@ -108,6 +109,21 @@ local function IsTabAccessible(tab)
     return bagID ~= nil and C_Container.GetContainerNumSlots(bagID) > 0
 end
 
+--- Number of tabs the player actually has in the selected bank (bought tabs;
+--- opened guild bank tabs). Falls back to the maximum while the count is unknown
+--- (bank closed, data not loaded yet) so no tab is hidden by mistake.
+local function GetUsableTabCount()
+    local max = GetMaxTabs()
+    local n
+    if S.mode == "guild" then
+        n = IsGuildBankOpen() and GetNumGuildBankTabs() or nil
+    elseif C_Bank and C_Bank.FetchNumPurchasedBankTabs then
+        n = C_Bank.FetchNumPurchasedBankTabs(S.mode == "warband" and Enum.BankType.Account or Enum.BankType.Character)
+    end
+    if type(n) ~= "number" or n < 1 then return max end
+    return math.min(n, max)
+end
+
 --- First and last tab index covered by the current tab selection.
 --- Callers loop first..last and skip tabs that are not accessible.
 local function TabRange()
@@ -122,6 +138,37 @@ local function AnyTabAccessible()
         if IsTabAccessible(tab) then return true end
     end
     return false
+end
+
+--- Iterator over every slot of the player's bags: for bagID, slot in BagSlots() do ... end
+local function BagSlots()
+    local bagIndex, slot, numSlots = 0, 0, 0
+    return function()
+        slot = slot + 1
+        while slot > numSlots do
+            bagIndex = bagIndex + 1
+            local bagID = PLAYER_BAGS[bagIndex]
+            if not bagID then return nil end
+            numSlots, slot = C_Container.GetContainerNumSlots(bagID), 1
+        end
+        return PLAYER_BAGS[bagIndex], slot
+    end
+end
+
+--- Iterator over every slot of the accessible tabs of the current tab selection:
+--- for tab, slot in BankSlots() do ... end
+local function BankSlots()
+    local first, last = TabRange()
+    local tab, slot, numSlots = first - 1, 0, 0
+    return function()
+        slot = slot + 1
+        while slot > numSlots do
+            tab = tab + 1
+            if tab > last then return nil end
+            numSlots, slot = IsTabAccessible(tab) and GetBankTabSlotCount(tab) or 0, 1
+        end
+        return tab, slot
+    end
 end
 
 --- First bank slot of a tab that is empty and not already claimed this run.
@@ -148,7 +195,8 @@ local function RequestGuildTabData()
     for tab = 1, (GetNumGuildBankTabs() or 0) do QueryGuildBankTab(tab) end
 end
 
---- Detects which bank is currently open/active.
+--- Detects which bank is currently open/active ("guild" | "warband" | "character" | nil).
+--- With Baganator its own views are asked first (see Baganator.lua).
 --- Guild Bank has its own dedicated frame (GuildBankFrame).
 --- Character Bank and Warband Bank share a single BankFrame with two
 --- internal panels; BankFrame:GetActiveBankType() (the same call Blizzard
@@ -158,6 +206,9 @@ end
 --- PLAYER_INTERACTION_MANAGER_FRAME_SHOW/HIDE, which only fires once for
 --- the whole BankFrame and not per internal panel switch.
 local function DetectOpenBank()
+    -- Baganator draws its own bank windows: ask it first
+    local baganatorBank = ns.GetBaganatorBank()
+    if baganatorBank then return baganatorBank end
     if GuildBankFrame and GuildBankFrame:IsShown() then return "guild" end
     if BankFrame and BankFrame:IsShown() and BankFrame.GetActiveBankType then
         local bankType = BankFrame:GetActiveBankType()
@@ -176,6 +227,15 @@ local function GetVisibleBankTab(bankMode)
     local tabID = panel:GetSelectedTabID()
     local hit = tabID and BANK_TAB_BY_BAG[tabID]
     return hit and hit.mode == bankMode and hit.tab or nil
+end
+
+--- Tab currently shown for a bank, whatever draws the bank window: Baganator (0 = its
+--- "all tabs" view), Blizzard's guild bank or Blizzard's Bank / Warband panel. nil if unknown.
+local function GetVisibleTab(bank)
+    local baganatorBank, baganatorTab = ns.GetBaganatorBank()
+    if baganatorBank then return baganatorBank == bank and baganatorTab or nil end
+    if bank == "guild" then return GetCurrentGuildBankTab and GetCurrentGuildBankTab() or nil end
+    return GetVisibleBankTab(bank)
 end
 
 --- Whether the player is talking to a Character / Warband banker.
@@ -238,6 +298,8 @@ local function CheckAndValidate()
 end
 
 -- Exports
+ns.BagSlots = BagSlots
+ns.BankSlots = BankSlots
 ns.CheckAndValidate = CheckAndValidate
 ns.DetectOpenBank = DetectOpenBank
 ns.FindEmptyBankSlot = FindEmptyBankSlot
@@ -246,7 +308,10 @@ ns.GetBankSlotInfo = GetBankSlotInfo
 ns.GetBankTabSlotCount = GetBankTabSlotCount
 ns.GetMaxTabs = GetMaxTabs
 ns.GetTabBagID = GetTabBagID
+ns.GetUsableTabCount = GetUsableTabCount
+ns.GetVisibleTab = GetVisibleTab
 ns.IsBankSlotEmpty = IsBankSlotEmpty
+ns.IsCustomBankAddonLoaded = IsCustomBankAddonLoaded
 ns.IsTabAccessible = IsTabAccessible
 ns.RequestGuildTabData = RequestGuildTabData
 ns.TabLabel = TabLabel

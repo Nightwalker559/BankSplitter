@@ -19,14 +19,13 @@ local SelectTab = ns.SelectTab
 local SetStatus = ns.SetStatus
 local UpdateModeUI = ns.UpdateModeUI
 local UI = ns.UI
-local SaveLast, OpenSettings   -- assigned below, used by other files through ns
 
 -- ============================================================
 -- Remembered selection, window position and scale
 -- ============================================================
 
 --- Stores bank / source / tab / stack values (option "remember").
-SaveLast = function()
+local function SaveLast()
     if not Opt("remember") then return end
     BankSplitterDB = BankSplitterDB or {}
     BankSplitterDB.last = {
@@ -63,8 +62,8 @@ local function ApplyScale(value)
     UI.frame:SetScale(math.min(1.3, math.max(0.7, tonumber(value) or tonumber(Opt("scale")) or 1)))
 end
 
-UI.frame:HookScript("OnHide", function() SaveLast() end)
-UI.frame:HookScript("OnShow", function() RequestPreview() end)
+UI.frame:HookScript("OnHide", SaveLast)
+UI.frame:HookScript("OnShow", RequestPreview)
 
 --- Called once the saved variables are loaded (ADDON_LOADED, see Init.lua).
 local function ApplySavedState()
@@ -72,7 +71,6 @@ local function ApplySavedState()
     RestorePosition()
     ApplyScale()
 end
-
 
 local settingsCategory
 
@@ -123,7 +121,7 @@ local function RegisterSettings()
     settingsCategory = category
 end
 
-OpenSettings = function()
+local function OpenSettings()
     if settingsCategory then
         Settings.OpenToCategory(settingsCategory:GetID())
     else

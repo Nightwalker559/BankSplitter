@@ -19,7 +19,6 @@ local SetStatus = ns.SetStatus
 local W = ns.W
 local srcDone = ns.srcDone
 local UI = ns.UI
-local RefreshTransferUI   -- assigned below, used by other files through ns
 
 local TL_ROW_H = 24
 
@@ -111,7 +110,8 @@ local function GetTransferRow(i)
     return row
 end
 
-RefreshTransferUI = function()
+--- Redraws the list (also called by Items.lua when an entry is added or removed).
+local function RefreshTransferUI()
     local list = GetTransferList()
     for i, entry in ipairs(list) do
         local row = GetTransferRow(i)
@@ -127,9 +127,7 @@ RefreshTransferUI = function()
             -- not cached yet: show the ID now, redraw once the data arrives
             row.text:SetText("item:" .. entry.id)
             row.icon:SetTexture(134400)
-            if Item and Item.CreateFromItemID then
-                Item:CreateFromItemID(entry.id):ContinueOnItemLoad(RefreshTransferUI)
-            end
+            Item:CreateFromItemID(entry.id):ContinueOnItemLoad(RefreshTransferUI)
         end
         row:Show()
     end
@@ -139,7 +137,6 @@ RefreshTransferUI = function()
     transferCountText:SetText(string.format(L.TRANSFER_COUNT, #list))
 end
 UI.transferPage:SetScript("OnShow", RefreshTransferUI)
-
 
 local function StartTransfer()
     local list = GetTransferList()
@@ -160,8 +157,5 @@ end
 ns.RefreshTransferUI = RefreshTransferUI
 ns.StartTransfer = StartTransfer
 UI.transferAddBtn = transferAddBtn
-UI.transferChild = transferChild
-UI.transferCountText = transferCountText
-UI.transferEmptyText = transferEmptyText
 UI.transferRows = transferRows
 UI.transferScroll = transferScroll

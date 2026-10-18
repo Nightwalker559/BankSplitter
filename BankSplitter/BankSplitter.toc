@@ -13,9 +13,10 @@
 Locales\enUS.lua
 Locales\deDE.lua
 
-# -- Core: constants and shared state, items, bank access
+# -- Core: constants and shared state, items, bank access (Baganator.lua: its bank windows)
 Core\Core.lua
 Core\Items.lua
+Core\Baganator.lua
 Core\Bank.lua
 
 # -- UI: widgets, window, split page, transfer page

@@ -17,8 +17,9 @@ local SelectTab = ns.SelectTab
 local SetStatus = ns.SetStatus
 local UI = ns.UI
 
+-- /banksplitter [list | config | bank]   (/gbs is the addon's old name, kept as an alias)
 SLASH_BANKSPLITTER1 = "/banksplitter"
-SLASH_BANKSPLITTER2 = "/gbs"   -- the old name of the addon
+SLASH_BANKSPLITTER2 = "/gbs"
 SlashCmdList["BANKSPLITTER"] = function(msg)
     local cmd = strtrim(msg or ""):lower()
     if cmd == "list" then
@@ -31,6 +32,12 @@ SlashCmdList["BANKSPLITTER"] = function(msg)
         end
     elseif cmd == "config" or cmd == "options" then
         OpenSettings()
+    elseif cmd == "bank" then
+        -- diagnostic: which bank / tab does the addon see as open right now?
+        local bank = ns.DetectOpenBank()
+        local tab = bank and ns.GetVisibleTab(bank)
+        print(string.format("|cff00ccff[BankSplitter]|r open bank: %s, visible tab: %s (0 = all), Baganator: %s, selected in addon: %s / tab %s",
+            bank or "none", tostring(tab), tostring(ns.IsBaganatorActive()), S.mode, tostring(S.targetTab)))
     elseif UI.frame:IsShown() then
         UI.frame:Hide()
     else
@@ -38,7 +45,6 @@ SlashCmdList["BANKSPLITTER"] = function(msg)
         SetStatus(L.STATUS_MANUAL_OPEN, COLOR.INFO)
     end
 end
-
 
 local loadFrame = CreateFrame("Frame")
 loadFrame:RegisterEvent("ADDON_LOADED")
@@ -49,7 +55,6 @@ loadFrame:SetScript("OnEvent", function(self, event, arg1)
         self:UnregisterEvent("ADDON_LOADED")
         -- Saved variables exist from here on
         InitDB()
-        ApplySavedState()
         local ok, err = pcall(RegisterSettings)
         if not ok then
             print("|cff00ccff[BankSplitter]|r |cffff8800settings panel error: " .. tostring(err) .. "|r")
@@ -57,15 +62,14 @@ loadFrame:SetScript("OnEvent", function(self, event, arg1)
         return
     end
 
-    -- PLAYER_ENTERING_WORLD
+    -- PLAYER_ENTERING_WORLD: every addon is loaded now, so a bank replacement addon that
+    -- loads after this one is known when the remembered tab ("All") is restored.
+    ApplySavedState()
     if Opt("greeting") then
         print("|cff00ccff[BankSplitter]|r " .. L.CHAT_LOADED)
     end
-    -- ElvUI skin is applied from ElvUI_Skin.lua if present
-    if ns.ApplyElvUISkin then
-        -- ElvUI is fully initialized by PLAYER_ENTERING_WORLD and the skin
-        -- only touches our own frames, so no fixed wait is needed.
-        RunNextFrame(ns.ApplyElvUISkin)
-    end
+    -- ElvUI is fully initialized by PLAYER_ENTERING_WORLD and the skin only
+    -- touches our own frames, so no fixed wait is needed.
+    RunNextFrame(ns.ApplyElvUISkin)
     self:UnregisterAllEvents()
 end)
