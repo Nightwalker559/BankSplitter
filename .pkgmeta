@@ -1,0 +1,15 @@
+package-as: BankSplitter
+
+move-folders:
+  BankSplitter/BankSplitter: BankSplitter
+
+ignore:
+  - .github/*
+  - .gitattributes
+  - .gitignore
+  - LICENSE.md
+  - README.md
+
+manual-changelog:
+  filename: CHANGELOG.md
+  markup-type: markdown

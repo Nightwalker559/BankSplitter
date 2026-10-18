@@ -1,0 +1,32 @@
+## Interface: 120105
+## Title: BankSplitter
+## Notes: Splits item stacks across Guild Bank, Warband Bank and Character Bank tabs, moves items between bags and banks, and transfers a saved item list in one click.
+## Author: Nightwalker559
+## Version: 1.3.0
+## X-Curse-Project-ID: 1527460
+## X-Wago-ID: L6J9AdNv
+## IconTexture: Interface\AddOns\BankSplitter\Media\icon.tga
+## SavedVariables: BankSplitterDB
+## OptionalDeps: ElvUI
+
+# -- Locales
+Locales\enUS.lua
+Locales\deDE.lua
+
+# -- Core: constants and shared state, items, bank access
+Core\Core.lua
+Core\Items.lua
+Core\Bank.lua
+
+# -- UI: widgets, window, split page, transfer page
+UI\Widgets.lua
+UI\Frame.lua
+UI\SplitPage.lua
+UI\TransferPage.lua
+
+# -- Core: runs, events, settings; ElvUI skin; init
+Core\Run.lua
+Core\Events.lua
+Core\Settings.lua
+UI\ElvUISkin.lua
+Core\Init.lua
