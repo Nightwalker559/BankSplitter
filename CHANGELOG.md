@@ -5,41 +5,25 @@
 ## 1.3.0
 
 ### New
-- **One window with two tabs**: "Split" and "Transfer list" (Blizzard's tab strip below the window, like the bank). Bank, source and tab are chosen once in a bar at the top and apply to both pages.
-  - **Bank and source are dropdowns** (Blizzard's current dropdown style); the tab chips (All, 1-8) show the selection with a gold border. The transfer page only offers "Bags -> Bank" and "Bank -> Bags".
-  - **Footer** with the status line and one action button: "Split!" / "Transfer!", which turns into "Stop" while a run is active.
-  - **Live preview** on the split page instead of a Preview button. It follows what you type, the bank / source / tab selection and bag or bank changes, and shows why a run can't start (no item, no bank open, wrong tab).
-  - **Transfer page**: a drop target at the top and the list below. An empty list shows the hint.
-- **Options** in Blizzard's Settings panel (AddOns > BankSplitter). Open them via `/banksplitter config` or the "Options" link in the title bar.
-  - **Open with the bank**: one checkbox each for the Guild, Warband and Character Bank. The window opens on the tab you used last. Default: off.
-  - **Bank selection follows the open bank** (also when you switch between the Bank and Warband tab). Default: on.
-  - **Close with the bank**: a window that opened automatically closes again with the bank; a window you opened yourself stays, and a window you closed by hand is not reopened during the same bank visit. Default: on.
-  - **Remember last selection**: bank, source, tab, page, stack count and stack size. Default: on.
-  - **Window scale** (70 % - 130 %) and **chat message on login**.
-- **The window position** is saved when you move the window.
-- **The tab follows the bank window**: click tab 7 in the bank and chip 7 is selected here; switching between the Bank and Warband panel does the same. The chips show only the tabs you have (for example 1-2 with two Warband tabs) and update when you buy one.
-- **Baganator support**: the open bank and tab are read from Baganator's own bank and guild bank windows (Baganator hides Blizzard's), including its all-tabs view, which selects **All**.
-- `/banksplitter bank` prints which bank and tab BankSplitter sees as open.
+- One window with two tabs, "Split" and "Transfer list". Bank, source and tab are chosen once at the top.
+- Live preview instead of a Preview button.
+- Options in the Settings panel (`/banksplitter config`): open with a bank, bank follows the open bank, close with the bank, remember selection, scale.
+- The tab follows the bank window: click tab 7 in the bank, chip 7 is selected. Only the tabs you have are shown.
+- Baganator support: bank and tab are read from its windows, its all-tabs view selects **All**.
+- `/banksplitter bank` prints which bank and tab the addon sees as open.
 
 ### Changed
-- The addon is called **BankSplitter** everywhere now: the folder is `Interface\AddOns\BankSplitter` (it was `GuildBankSplitter`), and so are the files and frames. **Delete the old `GuildBankSplitter` folder.** To keep your transfer list and options, close the game and copy `WTF\Account\<account>\SavedVariables\GuildBankSplitter.lua` to `BankSplitter.lua` in the same folder.
-- `/banksplitter` is the main slash command; `/gbs` still works. `/banksplitter list` opens the window on the transfer page (or closes it when that page is showing).
-- The code is split into files by job: `Core/` (constants and shared state, items, bank access, runs, events, settings, init), `UI/` (widgets, window, split page, transfer page, ElvUI skin) and `Locales/`.
-- Interface version is 120105 (Patch 12.1.5); 120100 is no longer listed. Checked against Blizzard's UI source (live, 12.1.5): the bank, container, guild bank, item and interaction APIs used here are unchanged since 12.1.0.
-- The window uses Blizzard's current panel style (`DefaultPanelTemplate`: nine-slice metal border, title bar and an `InsetFrameTemplate` content area, like the bank window) instead of the old `BasicFrameTemplateWithInset`.
-- The transfer list uses Blizzard's current `ScrollFrameTemplate` (modern scroll bar) instead of the deprecated `UIPanelScrollFrameTemplate`.
-- The visible Warband / Character Bank tab is read from Blizzard's bank panel (`BankFrame.BankPanel:GetSelectedTabID()`) instead of being guessed from `BAG_UPDATE`. A plain tab click without an item change no longer leaves a stale tab behind.
-- The ElvUI skin covers the new controls (dropdowns, tabs) and reads ElvUI's color tables by `.r/.g/.b`.
-- The **All** chip is only shown with a bank replacement addon loaded: Blizzard's bank has no all-tabs view.
-- The preview no longer asks for more free slots than the chosen stack count needs.
-- Internal cleanup: shared helpers for bank / bag slot loops and bank pickups, lazy free-slot search while splitting, remembered settings are restored once all addons are loaded.
+- Renamed to **BankSplitter**. Delete the old `GuildBankSplitter` folder; to keep your list and options, copy `SavedVariables\GuildBankSplitter.lua` to `BankSplitter.lua`.
+- `/banksplitter` is the main command, `/gbs` still works.
+- **All** is only shown with a bank replacement addon loaded.
+- Interface 120105, Blizzard's current panel, scroll bar and dropdown styles, code split into files.
 
 ### Fixed
-- Gaps between the new stacks when splitting (seen in the Guild Bank): a step started as soon as a fixed pause was over, even if the server had not processed the previous one yet. The source slot was still locked, the split failed silently, and the reserved target slot stayed empty. Every step now waits until the previous operation is confirmed (cursor empty, slots unlocked, target filled; polled every 0.1 s, up to 2.5 s). An operation that is never confirmed releases its slot and is retried; after 3 in a row the run stops with a message. The fixed pause stays as a minimum. Applies to splits and to the transfer list.
-- Crafting quality icons in the transfer list were silently missing: `Professions.GetIconForQuality` no longer exists. The icon is now built from the item's `CraftingQualityInfo`.
-- Starting a Warband / Character Bank run with no banker open picked items up and left them on the cursor. It now stops with "No bank is open!".
-- A split that the bank refuses (e.g. a soulbound item into the Warband bank) left the item on the cursor and kept going, which could swap items. The item is put back and the run stops with a message.
-- Values typed into the Count / Size boxes were not committed when "+" or "-" was clicked (a button click does not take focus from an edit box). They are now committed first, and frozen while a run is active.
+- Gaps between new stacks: every step now waits for the server to confirm the previous one.
+- Missing crafting quality icons in the transfer list.
+- Runs with no banker open, or with a bank that refuses the item, left items on the cursor.
+- Typed Count / Size values were lost when clicking + or -.
+- The preview asked for more free slots than the chosen stack count needs.
 
 ---
 
