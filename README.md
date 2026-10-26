@@ -64,4 +64,4 @@ The addon folder is now `BankSplitter`. Delete the old `Interface\AddOns\GuildBa
 
 - [Changelog](https://github.com/Nightwalker559/BankSplitter/blob/main/CHANGELOG.md)
 - [Report a problem](https://github.com/Nightwalker559/BankSplitter/issues)
-- [MIT license](https://github.com/Nightwalker559/BankSplitter/blob/main/LICENSE.md), copyright Nightwalker559
+- [MIT license with AI restriction](https://github.com/Nightwalker559/BankSplitter/blob/main/LICENSE.md), copyright Nightwalker559
