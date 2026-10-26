@@ -60,8 +60,14 @@ World of Warcraft Retail (Interface 12.1.5). Optional: ElvUI, Baganator.
 
 The addon folder is now `BankSplitter`. Delete the old `Interface\AddOns\GuildBankSplitter` folder. To keep your transfer list and options, close the game and copy `WTF\Account\<account>\SavedVariables\GuildBankSplitter.lua` to `BankSplitter.lua` in the same folder.
 
-## Links
+## Changelog
 
-- [Changelog](https://github.com/Nightwalker559/BankSplitter/blob/main/CHANGELOG.md)
-- [Report a problem](https://github.com/Nightwalker559/BankSplitter/issues)
-- [MIT license with AI restriction](https://github.com/Nightwalker559/BankSplitter/blob/main/LICENSE.md), copyright Nightwalker559
+See [CHANGELOG.md](https://github.com/Nightwalker559/BankSplitter/blob/main/CHANGELOG.md).
+
+## Feedback
+
+Found a bug or have an idea? [Open an issue on GitHub](https://github.com/Nightwalker559/BankSplitter/issues).
+
+## License
+
+MIT with AI restriction (no use for AI or machine learning), see [LICENSE.md](https://github.com/Nightwalker559/BankSplitter/blob/main/LICENSE.md).
