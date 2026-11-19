@@ -1,4 +1,4 @@
-## Interface: 120105
+## Interface: 120105, 120107
 ## Title: BankSplitter
 ## Notes: Splits item stacks across Guild Bank, Warband Bank and Character Bank tabs, moves items between bags and banks, and transfers a saved item list in one click.
 ## Author: Nightwalker559
