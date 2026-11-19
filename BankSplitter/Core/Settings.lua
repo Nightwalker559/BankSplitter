@@ -65,7 +65,7 @@ end
 UI.frame:HookScript("OnHide", SaveLast)
 UI.frame:HookScript("OnShow", RequestPreview)
 
---- Called once the saved variables are loaded (ADDON_LOADED, see Init.lua).
+--- Called on PLAYER_ENTERING_WORLD (see Init.lua), once the saved variables and all addons are loaded.
 local function ApplySavedState()
     RestoreLast()
     RestorePosition()
@@ -80,7 +80,7 @@ local function InitDB()
     local db = BankSplitterDB
     db.settings = type(db.settings) == "table" and db.settings or {}
     db.pos      = type(db.pos) == "table" and db.pos or {}
-    -- earlier builds stored which window / tab to open with a bank ("none", "main", ...)
+    -- the open-with-bank options used to hold a window name ("none", "main", ...), now a boolean
     for _, key in pairs(OPEN_SETTING) do
         if type(db.settings[key]) == "string" then db.settings[key] = (db.settings[key] ~= "none") end
     end
