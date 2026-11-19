@@ -2,6 +2,11 @@
 
 ---
 
+## 1.3.1
+
+### Changed
+- TOC: added Interface 12.1.7 (120107).
+
 ## 1.3.0
 
 ### New
